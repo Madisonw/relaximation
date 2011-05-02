@@ -44,11 +44,12 @@ exports.createPool = function (options, callback) {
   if (!options.headers) options.headers = {};
   options.headers.connection = 'keep-alive';
   if (!options.delay) options.delay = 50;
-  
   var d = 0;
   var closed = 0;
+  var interval = 0;
   for (var i=0;i<options.count;i+=1) {
     d += options.delay;  
+    interval += options.interval || 0;
     setTimeout(function () {
       var opts = {totalRequests:0};
       pool.pools.push(opts);
@@ -60,7 +61,11 @@ exports.createPool = function (options, callback) {
         if (opts.callback) opts.callback(error, opts, resp, body);
         if (pool.running) {
           opts._starttime = new Date();
-          request(opts, cb);
+          setTimeout(function() {
+          	request(opts, cb);
+          },interval)
+          
+          
         } else {
           opts.client.end();
           closed += 1;
